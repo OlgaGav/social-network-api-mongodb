@@ -121,4 +121,20 @@ module.exports = {
       )
       .catch((err) => res.status(400).json(err));
   },
+
+  // Remove reaction from the thought, identify reaction by id
+  removeReaction(req, res) {
+    Thoughts.findOneAndUpdate(
+      { _id: req.params.thoughtId },
+      { $pull: { reactions: { reactionId: req.body.reactionId } } },
+      { new: true }
+    )
+      .then((thought) => {
+        !thought
+          ? res.status(404).json({ message: "No thought with specified Id found" })
+          : res.json(thought);
+      })
+      .catch((err) => res.status(400).json(err));
+  }
+
 };
