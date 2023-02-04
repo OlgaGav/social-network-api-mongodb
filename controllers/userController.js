@@ -19,7 +19,7 @@ module.exports = {
       .select('-__v')
       .populate("thoughts")
       .populate("friends")
-      .then(async (user) =>
+      .then((user) =>
         !user
           ? res.status(404).json({ message: 'No user with that ID' })
           : res.json({
@@ -31,6 +31,7 @@ module.exports = {
         return res.status(400).json(err);
       });
   },
+  
   // POST a new user (example {"username": "lernantino","email": "lernantino@gmail.com"})
   createUser(req, res) {
     User.create(req.body)
@@ -38,8 +39,16 @@ module.exports = {
       .catch((err) => res.status(400).json(err));
   },
 
-  //PUT to update a user by its _id
-  //TODO
+  // Update user
+  updateUser(req, res) {
+    User.findOneAndUpdate(
+      {_id: req.params.userId},
+      { $set: req.body },
+      { runValidators: true, new: true }
+      )
+    .then ((user) => res.json(user))
+    .catch((err) => res.json(err))
+  },
 
   // DELETE to remove user by its _id, remove a user's associated thoughts when deleted
   deleteUser(req, res) {
@@ -47,11 +56,7 @@ module.exports = {
       .then((user) =>
         !user
           ? res.status(404).json({ message: 'No such user exists' })
-          : Thoughts.findOneAndUpdate(
-              { user: req.params.userId },
-              { $pull: { users: req.params.userId } },
-              { new: true }
-            )
+          : Thoughts.deleteMany({ username: user.username })
       )
       .then((thoughts) =>
         !thoughts
