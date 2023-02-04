@@ -20,7 +20,7 @@ module.exports = {
       .catch((err) => res.status(400).json(err));
   },
   
-  // POST to create a new thought (don't forget to push the created thought's _id to the associated user's thoughts array field), example in notes section
+  // POST to create a new thought. Created thought's _id added (pushed) to the associated user's thoughts array field
   createThought(req, res) {
     Thoughts.create(req.body)
       .then((thought) => {
@@ -42,31 +42,67 @@ module.exports = {
   },
 
   // DELETE to remove a thought by its _id
+/*
   deleteThought(req, res) {
     Thoughts.findOneAndDelete({ _id: req.params.thoughtId })
-      // .then((thought) =>
-      //   !thought
-      //     ? res.status(404).json({ message: "No thought with that ID" })
-      //     // TODO: delete thought id from user
-      //     : res.json(thought)
-      // )
-      .then(() => res.json({ message: "Thought and user deleted!" }))
+      .then((thought) => {
+        if (!thought) { return res.status(404).json({ message: "No thought with that ID" }); }
+        User.findOneAndUpdate(
+          { name: thought.username },
+          { $pull: { thoughts: thought._id }},
+          { new: true }
+        )
+        .then((user) => {
+          res.json(thought);
+        })
+        .catch((err) => res.status(400).json(err));
+      })
+      .catch((err) => res.status(400).json(err));
+  },
+*/
+
+  deleteThought(req, res) {
+    Thoughts.findOneAndDelete({ _id: req.params.thoughtId })
+      .then((thought) => {
+        if (!thought) {return res.status(404).json({ message: "No thought with provided Id" })};
+        User.findOneAndUpdate(
+          { name: thought.username },
+          { $pull: { thoughts: thought._id }},
+          { new: true }
+        ).then((user) => {
+          res.json({ message: "Thought deleted and removed from user thoughts!" })
+        }).catch((err) => {
+          console.log(err);
+          return res.status(400).json(err);
+        });
+      })
       .catch((err) => res.status(400).json(err));
   },
 
   // Update a thought
   updateThought(req, res) {
-    Thoughts.findOneAndUpdate(
-      { _id: req.params.thoughtId },
-      { $set: req.body },
-      { runValidators: true, new: true }
-    )
-      .then((thought) =>
-        !thought
-          ? res.status(404).json({ message: "No thought with this id!" })
-          : res.json(thought)
+
+    Thoughts.findOne({ _id: req.params.thoughtId })
+    .then((thought) => {
+      if (!thought) {
+        return res.status(404).json({ message: "No thought with this id!" });
+      }
+
+      if (req.body.username && req.body.username !== thought.username) {
+        return res.status(400).json({ message: "Username field cannot be changed" });
+      }
+
+      Thoughts.findOneAndUpdate(
+        { _id: req.params.thoughtId },
+        { $set: req.body },
+        { runValidators: true, new: true }
       )
-      .catch((err) => res.status(400).json(err));
+        .then((updatedThought) => {
+          res.json(updatedThought);
+        })
+        .catch((err) => res.status(400).json(err));
+    })
+    .catch((err) => res.status(400).json(err));
   },
 
   // Add reaction to the thought
