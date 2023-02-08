@@ -34,6 +34,10 @@
   1. Download the repo 
   2. Install dependencies ``` npm install``` 
   3. Start server ```npm start```
+  
+  Video Walkthrough: https://drive.google.com/file/d/1JJjNfm5ZcKBsojTAEP7EgiZI4EXysf0v/view
+  
+  Collection (from Insomnia app.) with end points: [assets/collection.json](/assets/collection.json)
 
 ### Implemented API end points
 
@@ -90,7 +94,6 @@
 ```
 - Remove Reaction ```DELETE /api/thoughts/:thoughtId/reaction/:reactionId```
 
-Collection with end points: [assets/collection.json](/assets/collection.json)
   
   ## Credits
   
